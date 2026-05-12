@@ -6,9 +6,24 @@ on:
       - main
 
 jobs:
+  validate_tests_yml:
+    name: Check tests.yml (no lesson placeholders)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject placeholder values in tests.yml
+        run: |
+          set -e
+          test -f tests.yml
+          if grep -qE 'your-kittygram-domain|your-taski-domain|your_github_login|your_dockerhub_login|ваш_логин_на_гитхабе|ваш_логин_на_докерхабе' tests.yml; then
+            echo '::error title=tests.yml::В tests.yml остались заглушки из методички. Укажите реальные kittygram_domain, taski_domain, repo_owner, dockerhub_username и закоммитьте снова.'
+            exit 1
+          fi
+
   backend_lint:
     name: Backend lint (flake8)
     runs-on: ubuntu-latest
+    needs: [validate_tests_yml]
     env:
       PIP_ROOT_USER_ACTION: ignore
     steps:
@@ -26,6 +41,7 @@ jobs:
   backend_tests:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
+    needs: [validate_tests_yml]
     env:
       PIP_ROOT_USER_ACTION: ignore
     steps:
@@ -43,6 +59,7 @@ jobs:
   frontend_tests:
     name: Frontend tests (npm)
     runs-on: ubuntu-latest
+    needs: [validate_tests_yml]
     env:
       CI: true
     defaults:
