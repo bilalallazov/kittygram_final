@@ -1,0 +1,48 @@
+Сервер VPS: 81.26.183.233
+SSH: ssh ubuntu@81.26.183.233  (логин замените на свой, если не ubuntu)
+
+Домены (должны в DNS смотреть на 81.26.183.233):
+  Kittygram: mykittygramqqqwww.hopto.org
+  Taski:       mytaski.myftp.org
+
+---
+
+1) DNS: A-записи для обоих имён -> 81.26.183.233 (подождать распространения, TTL обычно 1–5 мин).
+
+2) Фаервол:
+   sudo ufw allow 22/tcp && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw enable
+
+3) На сервере папка Kittygram и env:
+   mkdir -p ~/kittygram
+   Положите туда docker-compose.production.yml из репозитория и файл .env (шаблон: kittygram-server.env.example в этой папке deploy/).
+   cd ~/kittygram && docker compose -f docker-compose.production.yml pull && docker compose -f docker-compose.production.yml up -d
+
+4) Проверка gateway:
+   curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:9000/
+
+5) Nginx (конфиги из deploy/):
+   sudo cp nginx-kittygram.conf /etc/nginx/sites-available/kittygram.conf
+   sudo cp nginx-taski.conf /etc/nginx/sites-available/taski.conf
+   Если Taski не на порту 8000 — правьте proxy_pass во втором файле.
+   sudo ln -sf /etc/nginx/sites-available/kittygram.conf /etc/nginx/sites-enabled/
+   sudo ln -sf /etc/nginx/sites-available/taski.conf /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+
+6) HTTPS:
+   sudo apt update && sudo apt install -y certbot python3-certbot-nginx
+   sudo certbot --nginx -d mykittygramqqqwww.hopto.org -d mytaski.myftp.org
+
+7) Проверка:
+   curl -I https://mykittygramqqqwww.hopto.org
+   curl -I https://mytaski.myftp.org
+
+8) С ПК — один раз скопировать скрипт на сервер:
+   scp deploy/install-on-server.sh ubuntu@81.26.183.233:~/
+
+9) На сервере (после ssh): сначала положите в ~/kittygram файлы docker-compose.production.yml и .env (см. kittygram-server.env.example), затем:
+   chmod +x ~/install-on-server.sh
+   export CERTBOT_EMAIL=ваш@email.ru
+   export TASKI_PORT=8000
+   ~/install-on-server.sh
+
+   Если Taski на другом порту — смените TASKI_PORT перед запуском.

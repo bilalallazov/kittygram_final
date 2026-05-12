@@ -1,0 +1,11 @@
+Чеклист перед отправкой на ревью (код в репозитории уже проверен локально: flake8 backend/, pytest tests/test_files.py tests/test_dockerhub_images.py).
+
+[ ] В GitHub в ветке main лежат те же файлы, что локально (push выполнен).
+[ ] В GitHub Secrets заданы: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, SSH_HOST, SSH_USER, SSH_KEY, TELEGRAM_TOKEN, TELEGRAM_TO.
+[ ] На сервере в ~/kittygram есть docker-compose.production.yml и .env (DOCKERHUB_USERNAME, БД, SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS).
+[ ] DNS: kittygram_domain и taski_domain из tests.yml указывают на один IP сервера.
+[ ] Системный Nginx: Kittygram -> 127.0.0.1:9000, Taski -> порт Taski; HTTPS (certbot).
+[ ] Пуш в main: Actions зелёный; в Telegram сообщение после деплоя.
+[ ] В корне: tests.yml, kittygram_workflow.yml (копия main.yml).
+
+Сетевые тесты (pytest весь набор) зелёные только при доступных https:// URL из tests.yml.
