@@ -132,13 +132,21 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
+          command_timeout: 30m
           script: |
             set -e
             cd "$HOME/kittygram"
-            docker compose -f docker-compose.production.yml pull
-            docker compose -f docker-compose.production.yml up -d
-            docker compose -f docker-compose.production.yml exec -T backend python manage.py migrate
-            docker compose -f docker-compose.production.yml exec -T backend python manage.py collectstatic --noinput
+            if docker compose version >/dev/null 2>&1; then
+              docker compose -f docker-compose.production.yml pull
+              docker compose -f docker-compose.production.yml up -d
+              docker compose -f docker-compose.production.yml exec -T backend python manage.py migrate
+              docker compose -f docker-compose.production.yml exec -T backend python manage.py collectstatic --noinput
+            else
+              docker-compose -f docker-compose.production.yml pull
+              docker-compose -f docker-compose.production.yml up -d
+              docker-compose -f docker-compose.production.yml exec -T backend python manage.py migrate
+              docker-compose -f docker-compose.production.yml exec -T backend python manage.py collectstatic --noinput
+            fi
 
       - name: Send Telegram notification
         if: success()
