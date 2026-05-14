@@ -16,7 +16,7 @@ services:
 
   backend:
     container_name: backend
-    image: ${DOCKERHUB_USERNAME}/kittygram_backend
+    image: ${DOCKERHUB_USERNAME}/kittygram_backend:latest
     restart: always
     env_file: .env
     depends_on:
@@ -27,7 +27,7 @@ services:
 
   frontend:
     container_name: frontend
-    image: ${DOCKERHUB_USERNAME}/kittygram_frontend
+    image: ${DOCKERHUB_USERNAME}/kittygram_frontend:latest
     env_file: .env
     command: cp -r /app/build/. /static/
     volumes:
@@ -35,7 +35,7 @@ services:
 
   gateway:
     container_name: gateway
-    image: ${DOCKERHUB_USERNAME}/kittygram_gateway
+    image: ${DOCKERHUB_USERNAME}/kittygram_gateway:latest
     restart: always
     env_file: .env
     ports:
