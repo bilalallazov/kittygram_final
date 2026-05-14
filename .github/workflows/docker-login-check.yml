@@ -1,0 +1,36 @@
+# Проверка только логина в Docker Hub (секреты DOCKERHUB_USERNAME + DOCKERHUB_TOKEN).
+# GitHub → Actions → «Docker Hub login check» → Run workflow → Run workflow.
+
+name: Docker Hub login check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker-login:
+    name: Try Docker Hub login
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check secrets are set
+        env:
+          U: ${{ secrets.DOCKERHUB_USERNAME }}
+          P: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$U" ] || [ -z "$P" ]; then
+            echo '::error::Задайте секреты DOCKERHUB_USERNAME и DOCKERHUB_TOKEN в Settings → Secrets and variables → Actions'
+            exit 1
+          fi
+          echo 'Secrets are present (values hidden).'
+
+      - name: Log in to docker.io
+        env:
+          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          USER_TRIMMED=$(printf '%s' "$DOCKER_USER" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          PASS_TRIMMED=$(printf '%s' "$DOCKER_PASS" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          printf '%s' "$PASS_TRIMMED" | docker login -u "$USER_TRIMMED" --password-stdin docker.io
+
+      - name: OK
+        run: echo 'Docker Hub login succeeded.'
